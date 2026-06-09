@@ -36,6 +36,15 @@ http://localhost:3000
 USE_MOCK_LLM=true /Users/fengjinlong/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node src/server.js
 ```
 
+## 简历输入
+
+目前支持两种方式：
+
+- 直接粘贴简历文本。
+- 上传 `.txt` 或 `.md` 简历文件，页面会自动读取并填入文本框。
+
+PDF 和 DOCX 解析需要额外依赖，当前零依赖 MVP 暂不内置。
+
 ## 可选环境变量
 
 ```bash

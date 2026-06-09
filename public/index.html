@@ -22,6 +22,11 @@
           <input id="targetRole" name="targetRole" value="后端开发工程师" autocomplete="off" />
 
           <label for="resumeText">简历内容</label>
+          <div class="file-upload-row">
+            <label class="file-upload-button" for="resumeFile">上传简历文件</label>
+            <input id="resumeFile" name="resumeFile" type="file" accept=".txt,.md,text/plain,text/markdown" />
+            <span id="resumeFileName">支持 .txt / .md</span>
+          </div>
           <textarea
             id="resumeText"
             name="resumeText"

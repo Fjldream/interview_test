@@ -10,6 +10,8 @@ const elements = {
   setupForm: document.querySelector("#setupForm"),
   targetRole: document.querySelector("#targetRole"),
   resumeText: document.querySelector("#resumeText"),
+  resumeFile: document.querySelector("#resumeFile"),
+  resumeFileName: document.querySelector("#resumeFileName"),
   generateButton: document.querySelector("#generateButton"),
   profilePanel: document.querySelector("#profilePanel"),
   profileContent: document.querySelector("#profileContent"),
@@ -44,6 +46,35 @@ function sampleResume() {
     "负责订单系统、支付回调、缓存优化、消息队列消费、接口性能优化和生产问题排查。",
     "在订单查询场景中使用 Redis 缓存降低数据库压力，参与慢 SQL 优化和监控告警建设。"
   ].join("\n");
+}
+
+function isSupportedResumeFile(file) {
+  const name = file.name.toLowerCase();
+  const type = file.type.toLowerCase();
+  return name.endsWith(".txt") || name.endsWith(".md") || type === "text/plain" || type === "text/markdown";
+}
+
+function handleResumeFile(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  if (!isSupportedResumeFile(file)) {
+    event.target.value = "";
+    elements.resumeFileName.textContent = "支持 .txt / .md";
+    showToast("仅支持 .txt 或 .md 简历文件", "error");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    elements.resumeText.value = String(reader.result || "").trim();
+    elements.resumeFileName.textContent = file.name;
+    showToast("简历文件已填入");
+  });
+  reader.addEventListener("error", () => {
+    showToast("读取文件失败，请改为手动粘贴", "error");
+  });
+  reader.readAsText(file, "utf-8");
 }
 
 function showToast(message, type = "info") {
@@ -236,6 +267,7 @@ function goPrevious() {
 }
 
 elements.resumeText.value = sampleResume();
+elements.resumeFile.addEventListener("change", handleResumeFile);
 elements.setupForm.addEventListener("submit", generateInterview);
 elements.submitAnswerButton.addEventListener("click", submitAnswer);
 elements.nextButton.addEventListener("click", goNext);
