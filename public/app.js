@@ -18,6 +18,8 @@ const elements = {
   profilePanel: document.querySelector("#profilePanel"),
   profileContent: document.querySelector("#profileContent"),
   emptyState: document.querySelector("#emptyState"),
+  emptyStateTitle: document.querySelector("#emptyStateTitle"),
+  emptyStateText: document.querySelector("#emptyStateText"),
   questionWorkspace: document.querySelector("#questionWorkspace"),
   progressText: document.querySelector("#progressText"),
   questionText: document.querySelector("#questionText"),
@@ -217,7 +219,7 @@ async function loadRuntimeConfig() {
     }
 
     if (config.provider === "deepseek") {
-      elements.modePill.textContent = "DeepSeek V4 Pro";
+      elements.modePill.textContent = config.fallbackModel ? "DeepSeek Pro + Flash" : "DeepSeek V4 Pro";
       return;
     }
 
@@ -230,8 +232,24 @@ async function loadRuntimeConfig() {
 function setBusy(isBusy, label = "生成面试") {
   elements.generateButton.disabled = isBusy;
   elements.submitAnswerButton.disabled = isBusy;
-  const loadingText = state.runtimeConfig?.provider === "deepseek" && !state.runtimeConfig?.useMockLlm ? "DeepSeek 生成中..." : "处理中...";
+  const isDeepSeek = state.runtimeConfig?.provider === "deepseek" && !state.runtimeConfig?.useMockLlm;
+  const loadingText = isDeepSeek ? "DeepSeek 生成中..." : "处理中...";
   elements.generateButton.textContent = isBusy ? loadingText : label;
+
+  if (isBusy) {
+    elements.emptyState.hidden = false;
+    elements.questionWorkspace.hidden = true;
+    elements.emptyStateTitle.textContent = "正在生成面试问题";
+    elements.emptyStateText.textContent = isDeepSeek
+      ? "优先使用 deepseek-v4-pro；如果响应太慢，会自动切换到 deepseek-v4-flash。"
+      : "正在根据简历生成候选人画像和面试题。";
+    return;
+  }
+
+  if (!state.questions.length) {
+    elements.emptyStateTitle.textContent = "等待生成问题";
+    elements.emptyStateText.textContent = "粘贴简历后开始一轮针对性练习。";
+  }
 }
 
 function renderList(element, items) {
@@ -310,7 +328,7 @@ async function generateInterview(event) {
   try {
     state.targetRole = elements.targetRole.value.trim();
     if (state.runtimeConfig?.provider === "deepseek" && !state.runtimeConfig?.useMockLlm) {
-      showToast("正在使用 DeepSeek V4 Pro 生成，可能需要稍等");
+      showToast("正在使用 DeepSeek 生成，Pro 较慢时会自动切 Flash");
     }
     const result = await api("/api/generate", {
       targetRole: state.targetRole,

@@ -108,3 +108,58 @@ describe("DeepSeek response normalization", () => {
     assert.equal(feedback.follow_up_question, "缓存失效时怎么办？");
   });
 });
+
+describe("LLM interview generation", () => {
+  it("generates profile and questions in one provider call", async () => {
+    let calls = 0;
+    const fetchImpl = async () => {
+      calls += 1;
+      return {
+        ok: true,
+        json: async () => ({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  profile: {
+                    target_role: "后端开发工程师",
+                    seniority: "4 年",
+                    skills: ["Java", "Redis"],
+                    projects: [],
+                    risk_points: ["需要补充指标"]
+                  },
+                  questions: [
+                    {
+                      question: "请讲讲 Redis 缓存优化。",
+                      standardAnswer: "需要说明背景、方案和结果。",
+                      criteria: "考察缓存设计。",
+                      followUp: "如何保证一致性？"
+                    }
+                  ]
+                })
+              }
+            }
+          ]
+        })
+      };
+    };
+
+    const result = await generateInterview(
+      { resumeText, targetRole: "后端开发工程师" },
+      {
+        config: {
+          provider: "deepseek",
+          apiKey: "test-key",
+          baseUrl: "https://api.deepseek.com",
+          model: "deepseek-v4-pro",
+          useMockLlm: false
+        },
+        fetchImpl
+      }
+    );
+
+    assert.equal(calls, 1);
+    assert.equal(result.profile.target_role, "后端开发工程师");
+    assert.equal(result.questions[0].reference_answer, "需要说明背景、方案和结果。");
+  });
+});

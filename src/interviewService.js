@@ -65,6 +65,19 @@ const questionsSchema = {
   }
 };
 
+const interviewSchema = {
+  name: "generated_interview",
+  schema: {
+    type: "object",
+    additionalProperties: false,
+    required: ["profile", "questions"],
+    properties: {
+      profile: profileSchema.schema,
+      questions: questionsSchema.schema.properties.questions
+    }
+  }
+};
+
 const feedbackSchema = {
   name: "answer_feedback",
   schema: {
@@ -131,37 +144,65 @@ function canUseLlm(config) {
   return Boolean((config.apiKey || config.openaiApiKey) && !config.useMockLlm);
 }
 
-function llmRequestOptions(config) {
+function llmRequestOptions(config, options = {}) {
   return {
     provider: config.provider || "openai",
     apiKey: config.apiKey || config.openaiApiKey,
     baseUrl: config.baseUrl,
-    model: config.model || config.openaiModel
+    model: config.model || config.openaiModel,
+    fallbackModel: config.fallbackModel,
+    timeoutMs: config.timeoutMs,
+    fetchImpl: options.fetchImpl
   };
 }
 
-async function extractProfile({ resumeText, targetRole, config }) {
+async function generateLlmInterview({ resumeText, targetRole, config, options }) {
+  if (!canUseLlm(config)) {
+    const profile = createMockProfile({ resumeText, targetRole });
+    return { profile, questions: createMockQuestions(profile) };
+  }
+
+  const result = await createJsonResponse({
+    ...llmRequestOptions(config, options),
+    schema: interviewSchema,
+    instructions:
+      "你是一名资深技术面试官。请基于简历一次性生成候选人画像和模拟面试题。必须只返回合法 JSON，所有可读文本字段都使用中文。",
+    input:
+      "请返回 JSON，顶层包含 profile 和 questions。" +
+      "profile 需要包含 target_role、seniority、skills、projects、risk_points。" +
+      "questions 需要 8 到 10 个问题；每个问题包含 question、intent、difficulty、reference_answer、scoring_rubric、follow_up_questions。" +
+      "如果你使用 standardAnswer、criteria、followUp 等字段也可以，但每题必须有标准答案。" +
+      "标准答案要像真实面试里的优秀回答，不要写成教材定义，并尽量结合候选人的简历经历。\n\n" +
+      `目标岗位：${targetRole}\n\n简历：\n${resumeText}`
+  });
+
+  return {
+    profile: result.profile || createMockProfile({ resumeText, targetRole }),
+    questions: normalizeInterviewQuestions(result.questions || [])
+  };
+}
+
+async function extractProfile({ resumeText, targetRole, config, options }) {
   if (!canUseLlm(config)) {
     return createMockProfile({ resumeText, targetRole });
   }
-
-  return createJsonResponse({
-    ...llmRequestOptions(config),
+  const result = await createJsonResponse({
+    ...llmRequestOptions(config, options),
     schema: profileSchema,
     instructions: "你是一名资深技术招聘专家和面试设计师。必须只返回合法 JSON，所有可读文本字段都使用中文。",
     input:
       `请从下面的简历中提取结构化候选人画像。\n\n` +
       `目标岗位：${targetRole}\n\n简历：\n${resumeText}`
   });
+  return result;
 }
 
-async function generateQuestions({ resumeText, profile, config }) {
+async function generateQuestions({ resumeText, profile, config, options }) {
   if (!canUseLlm(config)) {
     return createMockQuestions(profile);
   }
-
   const result = await createJsonResponse({
-    ...llmRequestOptions(config),
+    ...llmRequestOptions(config, options),
     schema: questionsSchema,
     instructions:
       "你是一名资深面试官。请基于简历生成模拟面试题和标准答案。必须只返回合法 JSON，所有可读文本字段都使用中文。",
@@ -170,15 +211,13 @@ async function generateQuestions({ resumeText, profile, config }) {
       "标准答案要像真实面试里的优秀回答，不要写成教材定义，并尽量结合候选人的简历经历。\n\n" +
       `候选人画像：\n${JSON.stringify(profile, null, 2)}\n\n简历：\n${resumeText}`
   });
-
   return normalizeInterviewQuestions(result.questions || result);
 }
 
 export async function generateInterview(input, options = {}) {
   const request = validateGenerateRequest(input);
   const config = options.config || getConfig();
-  const profile = await extractProfile({ ...request, config });
-  const questions = await generateQuestions({ resumeText: request.resumeText, profile, config });
+  const { profile, questions } = await generateLlmInterview({ ...request, config, options });
 
   return { profile, questions };
 }
@@ -192,7 +231,7 @@ export async function evaluateAnswer(input, options = {}) {
   }
 
   const result = await createJsonResponse({
-    ...llmRequestOptions(config),
+    ...llmRequestOptions(config, options),
     schema: feedbackSchema,
     instructions: "你是一名面试官和职业教练。反馈要具体、实用、公平。必须只返回合法 JSON，所有可读文本字段都使用中文。",
     input:

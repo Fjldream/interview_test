@@ -36,6 +36,8 @@ export function getConfig(env = process.env) {
     apiKey: provider === "deepseek" ? deepseekApiKey : openaiApiKey,
     baseUrl: provider === "deepseek" ? mergedEnv.DEEPSEEK_BASE_URL || "https://api.deepseek.com" : mergedEnv.OPENAI_BASE_URL || "https://api.openai.com/v1",
     model: provider === "deepseek" ? mergedEnv.DEEPSEEK_MODEL || "deepseek-v4-pro" : mergedEnv.OPENAI_MODEL || "gpt-5-mini",
+    fallbackModel: provider === "deepseek" ? mergedEnv.DEEPSEEK_FALLBACK_MODEL || "deepseek-v4-flash" : "",
+    timeoutMs: Number(mergedEnv.LLM_TIMEOUT_MS || 45000),
     openaiApiKey,
     openaiModel: mergedEnv.OPENAI_MODEL || "gpt-5-mini",
     useMockLlm: mergedEnv.USE_MOCK_LLM === "true"
