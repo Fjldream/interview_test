@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>简历模拟面试</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="setup-panel" aria-label="简历输入">
+        <div class="brand-row">
+          <div>
+            <h1>简历模拟面试</h1>
+            <p>根据简历生成问题，逐题练习。</p>
+          </div>
+          <span class="status-pill" id="modePill">Mock</span>
+        </div>
+
+        <form id="setupForm" class="setup-form">
+          <label for="targetRole">目标岗位</label>
+          <input id="targetRole" name="targetRole" value="后端开发工程师" autocomplete="off" />
+
+          <label for="resumeText">简历内容</label>
+          <textarea
+            id="resumeText"
+            name="resumeText"
+            spellcheck="false"
+            placeholder="粘贴你的简历文本，至少 80 个字符。"
+          ></textarea>
+
+          <button class="primary-button" id="generateButton" type="submit">生成面试</button>
+        </form>
+
+        <div class="profile-panel" id="profilePanel" hidden>
+          <h2>候选人画像</h2>
+          <div id="profileContent"></div>
+        </div>
+      </section>
+
+      <section class="interview-panel" aria-label="模拟面试">
+        <div class="empty-state" id="emptyState">
+          <h2>等待生成问题</h2>
+          <p>粘贴简历后开始一轮针对性练习。</p>
+        </div>
+
+        <section class="question-workspace" id="questionWorkspace" hidden>
+          <header class="question-header">
+            <div>
+              <p class="eyebrow" id="progressText">第 1 题</p>
+              <h2 id="questionText"></h2>
+            </div>
+            <span class="difficulty" id="difficultyText"></span>
+          </header>
+
+          <div class="intent-block">
+            <span>考察点</span>
+            <p id="intentText"></p>
+          </div>
+
+          <label for="answerText">你的回答</label>
+          <textarea id="answerText" spellcheck="false" placeholder="先按真实面试作答，提交后再看标准答案。"></textarea>
+
+          <div class="actions">
+            <button class="secondary-button" id="prevButton" type="button">上一题</button>
+            <button class="primary-button" id="submitAnswerButton" type="button">提交回答</button>
+            <button class="secondary-button" id="nextButton" type="button">下一题</button>
+          </div>
+
+          <section class="answer-panel" id="answerPanel" hidden>
+            <div class="score-row">
+              <h3>本题反馈</h3>
+              <strong id="scoreText"></strong>
+            </div>
+            <div class="result-grid">
+              <article>
+                <h4>标准答案</h4>
+                <p id="referenceAnswerText"></p>
+              </article>
+              <article>
+                <h4>优化版回答</h4>
+                <p id="improvedAnswerText"></p>
+              </article>
+              <article>
+                <h4>亮点</h4>
+                <ul id="strengthList"></ul>
+              </article>
+              <article>
+                <h4>缺失点</h4>
+                <ul id="weaknessList"></ul>
+              </article>
+            </div>
+            <div class="follow-up">
+              <span>追问</span>
+              <p id="followUpText"></p>
+            </div>
+          </section>
+        </section>
+
+        <section class="report-panel" id="reportPanel" hidden>
+          <div class="score-row">
+            <h2>最终报告</h2>
+            <strong id="averageScoreText"></strong>
+          </div>
+          <div class="result-grid">
+            <article>
+              <h4>优势</h4>
+              <ul id="reportStrengths"></ul>
+            </article>
+            <article>
+              <h4>薄弱点</h4>
+              <ul id="reportWeakAreas"></ul>
+            </article>
+            <article>
+              <h4>练习建议</h4>
+              <ul id="reportSuggestions"></ul>
+            </article>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" hidden></div>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

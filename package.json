@@ -1,0 +1,11 @@
+{
+  "name": "interview-test",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "dev": "node src/server.js",
+    "dev:mock": "USE_MOCK_LLM=true node src/server.js"
+  }
+}
