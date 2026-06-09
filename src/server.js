@@ -124,6 +124,6 @@ if (process.argv[1] === __filename) {
   const server = createAppServer({ config });
 
   server.listen(config.port, () => {
-    console.log(`Interview MVP running at http://localhost:${config.port}`);
+    console.log(`简历模拟面试已启动：http://localhost:${config.port}`);
   });
 }

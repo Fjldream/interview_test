@@ -9,8 +9,8 @@ import {
 describe("validateGenerateRequest", () => {
   it("rejects resume text that is too short", () => {
     assert.throws(
-      () => validateGenerateRequest({ resumeText: "Java", targetRole: "Backend Engineer" }),
-      /resume must contain at least 80 characters/i
+      () => validateGenerateRequest({ resumeText: "Java", targetRole: "后端开发工程师" }),
+      /简历内容至少需要 80 个字符/
     );
   });
 
@@ -21,7 +21,7 @@ describe("validateGenerateRequest", () => {
           resumeText:
             "Experienced backend engineer with Java, Spring Boot, Redis, MySQL, distributed systems, order systems, and payment integrations."
         }),
-      /target role is required/i
+      /请填写目标岗位/
     );
   });
 
@@ -29,11 +29,11 @@ describe("validateGenerateRequest", () => {
     const result = validateGenerateRequest({
       resumeText:
         "  Experienced backend engineer with Java, Spring Boot, Redis, MySQL, distributed systems, order systems, and payment integrations.  ",
-      targetRole: "  Backend Engineer  "
+      targetRole: "  后端开发工程师  "
     });
 
     assert.equal(result.resumeText.startsWith("Experienced"), true);
-    assert.equal(result.targetRole, "Backend Engineer");
+    assert.equal(result.targetRole, "后端开发工程师");
   });
 });
 
@@ -45,7 +45,7 @@ describe("validateFeedbackRequest", () => {
           question: { id: "q1", question: "Explain Redis caching.", reference_answer: "Discuss cache strategy." },
           candidateAnswer: " "
         }),
-      /candidate answer is required/i
+      /请先填写你的回答/
     );
   });
 

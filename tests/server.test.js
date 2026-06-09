@@ -4,9 +4,7 @@ import { after, before, describe, it } from "node:test";
 import { createAppServer } from "../src/server.js";
 
 const resumeText =
-  "Backend engineer with 4 years of experience building Java Spring Boot services. " +
-  "Worked on an order system, Redis caching, MySQL performance tuning, payment callbacks, " +
-  "message queues, distributed locks, monitoring, and production incident handling.";
+  "后端开发工程师，4 年经验，主要使用 Java、Spring Boot、Redis、MySQL。负责订单系统、支付回调、缓存优化、消息队列消费、接口性能优化和生产问题排查。";
 
 let server;
 let baseUrl;
@@ -43,7 +41,7 @@ describe("server routes", () => {
   it("generates interview questions", async () => {
     const { response, body } = await postJson("/api/generate", {
       resumeText,
-      targetRole: "Backend Engineer"
+      targetRole: "后端开发工程师"
     });
 
     assert.equal(response.status, 200);
@@ -54,11 +52,11 @@ describe("server routes", () => {
   it("evaluates a submitted answer", async () => {
     const generated = await postJson("/api/generate", {
       resumeText,
-      targetRole: "Backend Engineer"
+      targetRole: "后端开发工程师"
     });
     const { response, body } = await postJson("/api/evaluate", {
       question: generated.body.questions[0],
-      candidateAnswer: "I used Redis cache to reduce database reads and added expiration rules."
+      candidateAnswer: "我使用 Redis 缓存降低数据库读取压力，并设置了过期规则。"
     });
 
     assert.equal(response.status, 200);
@@ -68,13 +66,13 @@ describe("server routes", () => {
 
   it("creates a final report", async () => {
     const { response, body } = await postJson("/api/report", {
-      targetRole: "Backend Engineer",
+      targetRole: "后端开发工程师",
       answers: [
         {
           feedback: {
             score: 7,
-            strengths: ["Clear context"],
-            weaknesses: ["Needs metrics"]
+            strengths: ["背景清楚"],
+            weaknesses: ["需要补充指标"]
           }
         }
       ]

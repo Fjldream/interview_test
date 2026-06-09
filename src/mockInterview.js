@@ -19,34 +19,34 @@ const SKILL_KEYWORDS = [
 function detectSkills(resumeText) {
   const lower = resumeText.toLowerCase();
   const skills = SKILL_KEYWORDS.filter((skill) => lower.includes(skill.toLowerCase()));
-  return skills.length ? skills : ["Project delivery", "Problem solving", "System design"];
+  return skills.length ? skills : ["项目交付", "问题定位", "系统设计"];
 }
 
 function detectProjects(resumeText) {
   const lower = resumeText.toLowerCase();
   const projects = [];
 
-  if (lower.includes("order")) {
+  if (lower.includes("order") || resumeText.includes("订单")) {
     projects.push({
-      name: "Order System",
-      summary: "Resume mentions order-related backend work.",
-      highlights: ["business workflow", "performance", "reliability"]
+      name: "订单系统",
+      summary: "简历中提到了订单相关的后端项目经验。",
+      highlights: ["业务流程", "性能优化", "稳定性"]
     });
   }
 
-  if (lower.includes("payment")) {
+  if (lower.includes("payment") || resumeText.includes("支付")) {
     projects.push({
-      name: "Payment Integration",
-      summary: "Resume mentions payment callback or integration work.",
-      highlights: ["idempotency", "callback handling", "failure recovery"]
+      name: "支付集成",
+      summary: "简历中提到了支付回调或支付链路集成经验。",
+      highlights: ["幂等处理", "回调处理", "异常恢复"]
     });
   }
 
-  if (lower.includes("cache") || lower.includes("redis")) {
+  if (lower.includes("cache") || lower.includes("redis") || resumeText.includes("缓存")) {
     projects.push({
-      name: "Caching Optimization",
-      summary: "Resume mentions cache or Redis optimization.",
-      highlights: ["cache strategy", "consistency", "hot key handling"]
+      name: "缓存优化",
+      summary: "简历中提到了缓存或 Redis 优化经验。",
+      highlights: ["缓存策略", "一致性", "热点 key 处理"]
     });
   }
 
@@ -54,9 +54,9 @@ function detectProjects(resumeText) {
     ? projects
     : [
         {
-          name: "Main Resume Project",
-          summary: "Primary project inferred from the resume content.",
-          highlights: ["technical ownership", "delivery", "tradeoffs"]
+          name: "核心简历项目",
+          summary: "根据简历内容推断出的主要项目经验。",
+          highlights: ["技术负责", "项目交付", "方案权衡"]
         }
       ];
 }
@@ -67,62 +67,62 @@ export function createMockProfile({ resumeText, targetRole }) {
 
   return {
     target_role: targetRole,
-    seniority: resumeText.match(/\b[3-9]\s*(years|年)/i) ? "3+ years" : "not specified",
+    seniority: resumeText.match(/\b[3-9]\s*(years|年)/i) ? "3 年以上" : "简历未明确",
     skills,
     projects,
     risk_points: [
-      "Project impact needs concrete metrics",
-      "Technical tradeoffs should be explained clearly",
-      "Failure handling and edge cases may be challenged"
+      "项目影响需要补充具体数据",
+      "技术方案权衡需要讲清楚",
+      "异常处理和边界场景可能会被追问"
     ]
   };
 }
 
 function referenceAnswer(topic, targetRole) {
   return (
-    `A strong ${targetRole} answer should start with the business context, then describe the concrete problem, ` +
-    `the technical decision, and the measured result. For ${topic}, the candidate should explain implementation ` +
-    "details, tradeoffs, failure modes, and how the result was validated in production or testing."
+    `一个优秀的 ${targetRole} 回答应该先说明业务背景，再讲清楚遇到的具体问题、你的职责、` +
+    `采用的技术方案和最终结果。针对「${topic}」，建议补充实现细节、方案权衡、异常场景，` +
+    "以及你如何通过数据、测试或线上指标验证效果。"
   );
 }
 
 export function createMockQuestions(profile) {
-  const primarySkill = profile.skills[0] || "core technical skill";
-  const project = profile.projects[0] || { name: "main project" };
+  const primarySkill = profile.skills[0] || "核心技术能力";
+  const project = profile.projects[0] || { name: "核心项目" };
   const targetRole = profile.target_role;
 
   const topics = [
     {
-      question: `Your resume mentions ${project.name}. What problem did this project solve, and what was your specific responsibility?`,
-      intent: "Verify project ownership and business understanding."
+      question: `你的简历里提到了「${project.name}」。这个项目主要解决了什么问题？你在其中具体负责什么？`,
+      intent: "考察项目真实性、职责边界和业务理解。"
     },
     {
-      question: `You listed ${primarySkill}. Please explain one difficult technical decision you made with it.`,
-      intent: "Evaluate depth of hands-on technical experience."
+      question: `你简历里写到了「${primarySkill}」。请结合一个真实场景说明你做过的一次关键技术决策。`,
+      intent: "考察技术栈是否真正用过，以及是否能解释方案选择。"
     },
     {
-      question: "Describe a performance bottleneck you found and how you proved the optimization worked.",
-      intent: "Evaluate measurement-driven performance optimization."
+      question: "请讲一个你发现性能瓶颈并完成优化的例子。你是怎么定位问题，又怎么证明优化有效的？",
+      intent: "考察性能优化思路、指标意识和结果验证能力。"
     },
     {
-      question: "How did you handle failures, retries, or idempotency in one production workflow?",
-      intent: "Evaluate reliability and production thinking."
+      question: "在你参与的线上流程里，失败重试、幂等或异常恢复是怎么处理的？",
+      intent: "考察稳定性设计和生产环境经验。"
     },
     {
-      question: "If traffic doubled for the system in your resume, which part would you inspect first and why?",
-      intent: "Evaluate system design and prioritization."
+      question: "如果你简历中的系统流量翻倍，你会优先检查哪个环节？为什么？",
+      intent: "考察系统设计、容量评估和优先级判断。"
     },
     {
-      question: "Tell me about a bug or incident in this project and how you resolved it.",
-      intent: "Evaluate debugging process and ownership."
+      question: "请讲一次你在项目中遇到的线上问题或复杂 bug。你是如何定位并解决的？",
+      intent: "考察排障过程、责任心和复盘能力。"
     },
     {
-      question: "How did you collaborate with product, QA, or other engineers during this project?",
-      intent: "Evaluate communication and delivery habits."
+      question: "这个项目里你是如何和产品、测试或其他研发同事协作的？",
+      intent: "考察沟通方式、推进能力和交付习惯。"
     },
     {
-      question: "Which part of your resume project would you redesign if you had more time?",
-      intent: "Evaluate reflection, tradeoffs, and engineering maturity."
+      question: "如果有机会重构你简历里的一个项目，你最想改哪一部分？为什么？",
+      intent: "考察反思能力、技术权衡和工程成熟度。"
     }
   ];
 
@@ -130,18 +130,18 @@ export function createMockQuestions(profile) {
     id: `q${index + 1}`,
     question: topic.question,
     intent: topic.intent,
-    difficulty: index < 2 ? "medium" : "medium-hard",
+    difficulty: index < 2 ? "中等" : "中高",
     reference_answer: referenceAnswer(topic.question, targetRole),
     scoring_rubric: [
-      "Connects answer to resume experience",
-      "Explains context, action, and result",
-      "Includes technical details and tradeoffs",
-      "Mentions metrics or validation where possible",
-      "Avoids vague claims without evidence"
+      "回答能和简历经历对应起来",
+      "能说明背景、行动和结果",
+      "包含技术细节和方案权衡",
+      "尽量补充指标或验证方式",
+      "避免只有笼统结论而没有证据"
     ],
     follow_up_questions: [
-      "What metric proved this approach worked?",
-      "What would break first if the scale increased?"
+      "你用什么指标证明这个方案是有效的？",
+      "如果规模继续扩大，哪个环节最可能先出问题？"
     ]
   }));
 }
@@ -155,17 +155,17 @@ export function createMockFeedback({ question, candidateAnswer }) {
   return {
     score,
     strengths: [
-      "The answer connects to the interview question.",
-      candidateAnswer.length > 80 ? "The answer provides some concrete explanation." : "The answer is concise and direct."
+      "回答能回应当前面试问题。",
+      candidateAnswer.length > 80 ? "回答中有一定的具体说明。" : "回答比较简洁直接。"
     ],
     weaknesses: [
-      hasMetric ? "Metrics are mentioned, but the before-and-after comparison can be clearer." : "Add concrete metrics or before-and-after evidence.",
-      hasTradeoff ? "Tradeoffs are mentioned; explain why this option was chosen." : "Explain technical tradeoffs, risks, and failure handling."
+      hasMetric ? "已经提到指标，但前后对比可以再讲清楚。" : "建议补充具体指标或优化前后的对比证据。",
+      hasTradeoff ? "已经提到权衡，可以进一步解释为什么选择这个方案。" : "建议补充技术权衡、风险和异常处理。"
     ],
     improved_answer:
-      `${candidateAnswer.trim()} A stronger version would add the original context, the exact technical decision, ` +
-      "the tradeoff considered, and a measurable result. It should also mention how edge cases or failures were handled.",
-    follow_up_question: question.follow_up_questions?.[0] || "What evidence shows your solution worked?"
+      `${candidateAnswer.trim()} 更完整的表达可以补充：当时的业务背景、原始问题、你做出的具体技术决策、` +
+      "为什么这样取舍、最终带来了什么可量化结果，以及边界场景或异常情况是如何处理的。",
+    follow_up_question: question.follow_up_questions?.[0] || "你有什么证据证明这个方案确实有效？"
   };
 }
 
@@ -182,9 +182,9 @@ export function createMockReport({ targetRole, answers }) {
     strengths,
     weak_areas: weakAreas,
     practice_suggestions: [
-      "Prepare one STAR-style story for each major project.",
-      "Add before-and-after metrics for performance and reliability claims.",
-      "Practice explaining tradeoffs, failure modes, and follow-up improvements."
+      "为每个核心项目准备一个 STAR 结构的回答：背景、任务、行动、结果。",
+      "为性能、稳定性和交付成果补充优化前后的量化指标。",
+      "练习解释方案权衡、失败场景和后续改进计划。"
     ]
   };
 }

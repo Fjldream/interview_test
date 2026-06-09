@@ -1,42 +1,42 @@
-# Resume Interview MVP
+# 简历模拟面试 MVP
 
-A resume-driven mock interview app. It generates interview questions from a resume, lets the candidate answer one question at a time, and reveals the reference answer plus feedback immediately after each submitted answer.
+一个根据简历生成面试问题的模拟面试应用。用户逐题作答，提交后立即看到标准答案、评分、亮点、缺失点、优化版回答和追问。
 
-## Requirements
+## 环境要求
 
-The app uses only built-in Node.js APIs and has no package dependencies.
+应用只使用 Node.js 内置 API，没有外部依赖。
 
-The local system `node` may not work if Homebrew libraries are broken. In that case, use the Codex bundled Node:
+如果本机 Homebrew 依赖异常，系统 `node` 可能不可用。可以使用 Codex 自带的 Node：
 
 ```bash
 /Users/fengjinlong/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node
 ```
 
-## Run Tests
+## 运行测试
 
 ```bash
 /Users/fengjinlong/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node --test tests/*.test.js
 ```
 
-## Run App
+## 启动应用
 
 ```bash
 /Users/fengjinlong/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node src/server.js
 ```
 
-Then open:
+然后打开：
 
 ```text
 http://localhost:3000
 ```
 
-For stable local testing without calling OpenAI:
+如果想稳定本地测试、不调用 OpenAI：
 
 ```bash
 USE_MOCK_LLM=true /Users/fengjinlong/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node src/server.js
 ```
 
-## Optional Environment
+## 可选环境变量
 
 ```bash
 OPENAI_API_KEY=your_api_key
@@ -45,4 +45,4 @@ PORT=3000
 USE_MOCK_LLM=false
 ```
 
-If `OPENAI_API_KEY` is missing or `USE_MOCK_LLM=true`, the app uses deterministic mock interview data so the MVP still runs locally.
+如果没有配置 `OPENAI_API_KEY`，或者设置了 `USE_MOCK_LLM=true`，应用会使用本地 mock 面试数据，方便直接体验。

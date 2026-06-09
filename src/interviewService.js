@@ -94,10 +94,10 @@ async function extractProfile({ resumeText, targetRole, config }) {
     apiKey: config.openaiApiKey,
     model: config.openaiModel,
     schema: profileSchema,
-    instructions: "You are a senior technical recruiter and interview designer. Return valid JSON only.",
+    instructions: "你是一名资深技术招聘专家和面试设计师。必须只返回合法 JSON，所有可读文本字段都使用中文。",
     input:
-      `Extract a structured candidate profile from this resume.\n\n` +
-      `Target role: ${targetRole}\n\nResume:\n${resumeText}`
+      `请从下面的简历中提取结构化候选人画像。\n\n` +
+      `目标岗位：${targetRole}\n\n简历：\n${resumeText}`
   });
 }
 
@@ -111,11 +111,11 @@ async function generateQuestions({ resumeText, profile, config }) {
     model: config.openaiModel,
     schema: questionsSchema,
     instructions:
-      "You are a senior interviewer. Generate resume-specific mock interview questions with reference answers. Return valid JSON only.",
+      "你是一名资深面试官。请基于简历生成模拟面试题和标准答案。必须只返回合法 JSON，所有可读文本字段都使用中文。",
     input:
-      "Generate 8 to 10 interview questions. Each question must include a reference answer, scoring rubric, and follow-up questions. " +
-      "Reference answers should sound like strong interview responses, not textbook definitions.\n\n" +
-      `Candidate profile:\n${JSON.stringify(profile, null, 2)}\n\nResume:\n${resumeText}`
+      "请生成 8 到 10 个面试问题。每个问题必须包含标准答案、评分标准和可能追问。" +
+      "标准答案要像真实面试里的优秀回答，不要写成教材定义，并尽量结合候选人的简历经历。\n\n" +
+      `候选人画像：\n${JSON.stringify(profile, null, 2)}\n\n简历：\n${resumeText}`
   });
 
   return result.questions;
@@ -142,18 +142,18 @@ export async function evaluateAnswer(input, options = {}) {
     apiKey: config.openaiApiKey,
     model: config.openaiModel,
     schema: feedbackSchema,
-    instructions: "You are an interviewer and career coach. Be specific, practical, and fair. Return valid JSON only.",
+    instructions: "你是一名面试官和职业教练。反馈要具体、实用、公平。必须只返回合法 JSON，所有可读文本字段都使用中文。",
     input:
-      `Question:\n${request.question.question}\n\n` +
-      `Reference answer:\n${request.question.reference_answer}\n\n` +
-      `Scoring rubric:\n${JSON.stringify(request.question.scoring_rubric || [])}\n\n` +
-      `Candidate answer:\n${request.candidateAnswer}`
+      `面试问题：\n${request.question.question}\n\n` +
+      `标准答案：\n${request.question.reference_answer}\n\n` +
+      `评分标准：\n${JSON.stringify(request.question.scoring_rubric || [])}\n\n` +
+      `候选人回答：\n${request.candidateAnswer}`
   });
 }
 
 export async function createFinalReport(input) {
   return createMockReport({
-    targetRole: input?.targetRole || "Target Role",
+    targetRole: input?.targetRole || "目标岗位",
     answers: Array.isArray(input?.answers) ? input.answers : []
   });
 }
