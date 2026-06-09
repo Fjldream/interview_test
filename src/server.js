@@ -77,6 +77,16 @@ async function routeApi(request, response, config) {
     return true;
   }
 
+  if (request.method === "GET" && url.pathname === "/api/config") {
+    sendJson(response, 200, {
+      provider: config.provider || "openai",
+      model: config.model || config.openaiModel || "gpt-5-mini",
+      hasApiKey: Boolean(config.apiKey || config.openaiApiKey),
+      useMockLlm: Boolean(config.useMockLlm)
+    });
+    return true;
+  }
+
   if (request.method === "POST" && url.pathname === "/api/generate") {
     const body = await readJson(request);
     sendJson(response, 200, await generateInterview(body, { config }));

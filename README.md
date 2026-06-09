@@ -30,7 +30,7 @@
 http://localhost:3000
 ```
 
-如果想稳定本地测试、不调用 OpenAI：
+如果想稳定本地测试、不调用大模型：
 
 ```bash
 USE_MOCK_LLM=true /Users/fengjinlong/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node src/server.js
@@ -41,14 +41,20 @@ USE_MOCK_LLM=true /Users/fengjinlong/.cache/codex-runtimes/codex-primary-runtime
 当前桌面端优先支持 macOS，使用 Electron 复用现有 Web 应用。
 
 ```bash
-/Users/fengjinlong/.bun/bin/bun run desktop:mock
+/Users/fengjinlong/.bun/bin/bun run desktop
 ```
 
-如果要连接真实大模型生成题目和点评：
+本地 `.env` 可以这样配置，实际 key 不要提交到 git：
 
-```bash
-OPENAI_API_KEY=your_api_key /Users/fengjinlong/.bun/bin/bun run desktop
+```text
+LLM_PROVIDER=deepseek
+DEEPSEEK_API_KEY=your_deepseek_api_key
+DEEPSEEK_MODEL=deepseek-v4-pro
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+USE_MOCK_LLM=false
 ```
+
+DeepSeek V4 Pro 生成速度可能比 mock 慢，生成题目时请稍等。
 
 桌面端回答框旁边有“语音输入”按钮，默认尝试使用运行环境提供的中文语音识别能力，语言为 `zh-CN`。如果当前 Electron/macOS 权限环境不支持应用内语音识别，界面会提示不可用；这时仍可以使用 macOS 系统听写或输入法语音输入到回答框。
 

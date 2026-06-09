@@ -81,18 +81,72 @@ const feedbackSchema = {
   }
 };
 
-function canUseOpenAI(config) {
-  return Boolean(config.openaiApiKey && !config.useMockLlm);
+function toArray(value) {
+  if (Array.isArray(value)) {
+    return value.filter(Boolean);
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    return [value.trim()];
+  }
+
+  return [];
+}
+
+export function normalizeInterviewQuestions(rawQuestions) {
+  const questions = Array.isArray(rawQuestions) ? rawQuestions : [];
+  return questions.map((question, index) => ({
+    id: question.id || `q${index + 1}`,
+    question: question.question || question.text || question["面试问题"] || "",
+    intent: question.intent || question["考察点"] || question.criteria || "考察候选人与简历相关的真实经验。",
+    difficulty: question.difficulty || question["难度"] || "中等",
+    reference_answer:
+      question.reference_answer ||
+      question.standard_answer ||
+      question.standardAnswer ||
+      question.answer ||
+      question["标准答案"] ||
+      "",
+    scoring_rubric: toArray(question.scoring_rubric || question.criteria || question.rubric || question["评分标准"]).length
+      ? toArray(question.scoring_rubric || question.criteria || question.rubric || question["评分标准"])
+      : ["回答是否结合简历经历、是否有技术细节、是否说明结果和权衡。"],
+    follow_up_questions: toArray(question.follow_up_questions || question.followUp || question.follow_up || question["追问"]).length
+      ? toArray(question.follow_up_questions || question.followUp || question.follow_up || question["追问"])
+      : ["如果面试官继续深挖，你会补充哪些数据或细节？"]
+  }));
+}
+
+export function normalizeAnswerFeedback(rawFeedback) {
+  const feedback = rawFeedback || {};
+  return {
+    score: Number(feedback.score ?? feedback["分数"] ?? 0),
+    strengths: toArray(feedback.strengths || feedback.highlights || feedback["亮点"]),
+    weaknesses: toArray(feedback.weaknesses || feedback.missingPoints || feedback.missing_points || feedback["缺失点"]),
+    improved_answer: feedback.improved_answer || feedback.improvedAnswer || feedback["优化版回答"] || "",
+    follow_up_question: feedback.follow_up_question || feedback.followUp || feedback.follow_up || feedback["追问"] || ""
+  };
+}
+
+function canUseLlm(config) {
+  return Boolean((config.apiKey || config.openaiApiKey) && !config.useMockLlm);
+}
+
+function llmRequestOptions(config) {
+  return {
+    provider: config.provider || "openai",
+    apiKey: config.apiKey || config.openaiApiKey,
+    baseUrl: config.baseUrl,
+    model: config.model || config.openaiModel
+  };
 }
 
 async function extractProfile({ resumeText, targetRole, config }) {
-  if (!canUseOpenAI(config)) {
+  if (!canUseLlm(config)) {
     return createMockProfile({ resumeText, targetRole });
   }
 
   return createJsonResponse({
-    apiKey: config.openaiApiKey,
-    model: config.openaiModel,
+    ...llmRequestOptions(config),
     schema: profileSchema,
     instructions: "你是一名资深技术招聘专家和面试设计师。必须只返回合法 JSON，所有可读文本字段都使用中文。",
     input:
@@ -102,13 +156,12 @@ async function extractProfile({ resumeText, targetRole, config }) {
 }
 
 async function generateQuestions({ resumeText, profile, config }) {
-  if (!canUseOpenAI(config)) {
+  if (!canUseLlm(config)) {
     return createMockQuestions(profile);
   }
 
   const result = await createJsonResponse({
-    apiKey: config.openaiApiKey,
-    model: config.openaiModel,
+    ...llmRequestOptions(config),
     schema: questionsSchema,
     instructions:
       "你是一名资深面试官。请基于简历生成模拟面试题和标准答案。必须只返回合法 JSON，所有可读文本字段都使用中文。",
@@ -118,7 +171,7 @@ async function generateQuestions({ resumeText, profile, config }) {
       `候选人画像：\n${JSON.stringify(profile, null, 2)}\n\n简历：\n${resumeText}`
   });
 
-  return result.questions;
+  return normalizeInterviewQuestions(result.questions || result);
 }
 
 export async function generateInterview(input, options = {}) {
@@ -134,13 +187,12 @@ export async function evaluateAnswer(input, options = {}) {
   const request = validateFeedbackRequest(input);
   const config = options.config || getConfig();
 
-  if (!canUseOpenAI(config)) {
-    return createMockFeedback(request);
+  if (!canUseLlm(config)) {
+    return normalizeAnswerFeedback(createMockFeedback(request));
   }
 
-  return createJsonResponse({
-    apiKey: config.openaiApiKey,
-    model: config.openaiModel,
+  const result = await createJsonResponse({
+    ...llmRequestOptions(config),
     schema: feedbackSchema,
     instructions: "你是一名面试官和职业教练。反馈要具体、实用、公平。必须只返回合法 JSON，所有可读文本字段都使用中文。",
     input:
@@ -149,6 +201,7 @@ export async function evaluateAnswer(input, options = {}) {
       `评分标准：\n${JSON.stringify(request.question.scoring_rubric || [])}\n\n` +
       `候选人回答：\n${request.candidateAnswer}`
   });
+  return normalizeAnswerFeedback(result);
 }
 
 export async function createFinalReport(input) {

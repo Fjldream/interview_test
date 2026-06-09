@@ -4,7 +4,9 @@ import { describe, it } from "node:test";
 import {
   createFinalReport,
   evaluateAnswer,
-  generateInterview
+  generateInterview,
+  normalizeAnswerFeedback,
+  normalizeInterviewQuestions
 } from "../src/interviewService.js";
 
 const resumeText =
@@ -70,5 +72,39 @@ describe("createFinalReport", () => {
     assert.ok(report.weak_areas.includes("缺少一致性策略"));
     assert.ok(report.practice_suggestions.length > 0);
     assert.match(report.practice_suggestions[0], /准备|练习|项目/);
+  });
+});
+
+describe("DeepSeek response normalization", () => {
+  it("normalizes common DeepSeek question field names", () => {
+    const questions = normalizeInterviewQuestions([
+      {
+        question: "请讲讲 Redis 缓存设计。",
+        standardAnswer: "应该说明缓存策略、一致性和异常场景。",
+        criteria: "考察缓存设计能力。",
+        followUp: "如何保证缓存和数据库一致？"
+      }
+    ]);
+
+    assert.equal(questions[0].id, "q1");
+    assert.equal(questions[0].reference_answer, "应该说明缓存策略、一致性和异常场景。");
+    assert.deepEqual(questions[0].scoring_rubric, ["考察缓存设计能力。"]);
+    assert.deepEqual(questions[0].follow_up_questions, ["如何保证缓存和数据库一致？"]);
+  });
+
+  it("normalizes common DeepSeek feedback field names", () => {
+    const feedback = normalizeAnswerFeedback({
+      score: 8,
+      highlights: ["讲到了缓存策略"],
+      missingPoints: ["缺少量化指标"],
+      improvedAnswer: "可以补充命中率和延迟变化。",
+      followUp: "缓存失效时怎么办？"
+    });
+
+    assert.equal(feedback.score, 8);
+    assert.deepEqual(feedback.strengths, ["讲到了缓存策略"]);
+    assert.deepEqual(feedback.weaknesses, ["缺少量化指标"]);
+    assert.equal(feedback.improved_answer, "可以补充命中率和延迟变化。");
+    assert.equal(feedback.follow_up_question, "缓存失效时怎么办？");
   });
 });

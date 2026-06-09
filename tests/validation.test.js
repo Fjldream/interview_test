@@ -64,3 +64,11 @@ describe("validateFeedbackRequest", () => {
     assert.equal(result.candidateAnswer.includes("Redis"), true);
   });
 });
+
+describe("secret hygiene", () => {
+  it("ignores local environment files", async () => {
+    const gitignore = await import("node:fs/promises").then((fs) => fs.readFile(new URL("../.gitignore", import.meta.url), "utf8"));
+
+    assert.match(gitignore, /\.env\*/);
+  });
+});

@@ -38,3 +38,12 @@ describe("Chinese voice input UI", () => {
     assert.match(app, /stopVoiceInput/);
   });
 });
+
+describe("desktop layout polish", () => {
+  it("keeps the empty state compact instead of filling the whole viewport", async () => {
+    const css = await readFile(new URL("../public/styles.css", import.meta.url), "utf8");
+
+    assert.doesNotMatch(css, /min-height:\s*calc\(100vh - 56px\)/);
+    assert.match(css, /\.empty-state[\s\S]*min-height:\s*220px/);
+  });
+});

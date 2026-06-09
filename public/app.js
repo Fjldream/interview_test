@@ -3,7 +3,8 @@ const state = {
   questions: [],
   answers: [],
   currentIndex: 0,
-  targetRole: ""
+  targetRole: "",
+  runtimeConfig: null
 };
 
 const elements = {
@@ -12,6 +13,7 @@ const elements = {
   resumeText: document.querySelector("#resumeText"),
   resumeFile: document.querySelector("#resumeFile"),
   resumeFileName: document.querySelector("#resumeFileName"),
+  modePill: document.querySelector("#modePill"),
   generateButton: document.querySelector("#generateButton"),
   profilePanel: document.querySelector("#profilePanel"),
   profileContent: document.querySelector("#profileContent"),
@@ -203,10 +205,33 @@ async function api(path, payload) {
   return body;
 }
 
+async function loadRuntimeConfig() {
+  try {
+    const response = await fetch("/api/config");
+    const config = await response.json();
+    state.runtimeConfig = config;
+
+    if (config.useMockLlm) {
+      elements.modePill.textContent = "模拟模式";
+      return;
+    }
+
+    if (config.provider === "deepseek") {
+      elements.modePill.textContent = "DeepSeek V4 Pro";
+      return;
+    }
+
+    elements.modePill.textContent = config.hasApiKey ? config.model : "本地模式";
+  } catch {
+    elements.modePill.textContent = "本地模式";
+  }
+}
+
 function setBusy(isBusy, label = "生成面试") {
   elements.generateButton.disabled = isBusy;
   elements.submitAnswerButton.disabled = isBusy;
-  elements.generateButton.textContent = isBusy ? "处理中..." : label;
+  const loadingText = state.runtimeConfig?.provider === "deepseek" && !state.runtimeConfig?.useMockLlm ? "DeepSeek 生成中..." : "处理中...";
+  elements.generateButton.textContent = isBusy ? loadingText : label;
 }
 
 function renderList(element, items) {
@@ -284,6 +309,9 @@ async function generateInterview(event) {
 
   try {
     state.targetRole = elements.targetRole.value.trim();
+    if (state.runtimeConfig?.provider === "deepseek" && !state.runtimeConfig?.useMockLlm) {
+      showToast("正在使用 DeepSeek V4 Pro 生成，可能需要稍等");
+    }
     const result = await api("/api/generate", {
       targetRole: state.targetRole,
       resumeText: elements.resumeText.value
@@ -369,6 +397,7 @@ function goPrevious() {
 }
 
 elements.resumeText.value = sampleResume();
+loadRuntimeConfig();
 elements.resumeFile.addEventListener("change", handleResumeFile);
 elements.setupForm.addEventListener("submit", generateInterview);
 elements.voiceButton.addEventListener("click", toggleVoiceInput);

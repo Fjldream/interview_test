@@ -38,6 +38,18 @@ describe("server routes", () => {
     assert.deepEqual(body, { ok: true });
   });
 
+  it("returns public runtime config without secrets", async () => {
+    const response = await fetch(`${baseUrl}/api/config`);
+    const body = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.equal(body.provider, "openai");
+    assert.equal(body.model, "gpt-5-mini");
+    assert.equal(body.hasApiKey, false);
+    assert.equal(body.useMockLlm, true);
+    assert.equal("apiKey" in body, false);
+  });
+
   it("generates interview questions", async () => {
     const { response, body } = await postJson("/api/generate", {
       resumeText,
