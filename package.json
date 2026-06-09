@@ -3,9 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "main": "desktop/main.cjs",
   "scripts": {
     "test": "node --test tests/*.test.js",
     "dev": "node src/server.js",
-    "dev:mock": "USE_MOCK_LLM=true node src/server.js"
+    "dev:mock": "USE_MOCK_LLM=true node src/server.js",
+    "desktop": "/Users/fengjinlong/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node node_modules/electron/cli.js desktop/main.cjs",
+    "desktop:mock": "USE_MOCK_LLM=true /Users/fengjinlong/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node node_modules/electron/cli.js desktop/main.cjs"
+  },
+  "devDependencies": {
+    "electron": "39.2.7"
   }
 }

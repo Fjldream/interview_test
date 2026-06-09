@@ -22,6 +22,8 @@ const elements = {
   difficultyText: document.querySelector("#difficultyText"),
   intentText: document.querySelector("#intentText"),
   answerText: document.querySelector("#answerText"),
+  voiceButton: document.querySelector("#voiceButton"),
+  voiceStatus: document.querySelector("#voiceStatus"),
   prevButton: document.querySelector("#prevButton"),
   nextButton: document.querySelector("#nextButton"),
   submitAnswerButton: document.querySelector("#submitAnswerButton"),
@@ -39,6 +41,10 @@ const elements = {
   reportSuggestions: document.querySelector("#reportSuggestions"),
   toast: document.querySelector("#toast")
 };
+
+let voiceRecognition = null;
+let voiceActive = false;
+let voiceBaseText = "";
 
 function sampleResume() {
   return [
@@ -85,6 +91,101 @@ function showToast(message, type = "info") {
   showToast.timer = window.setTimeout(() => {
     elements.toast.hidden = true;
   }, 3200);
+}
+
+function getSpeechRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  return SpeechRecognition ? new SpeechRecognition() : null;
+}
+
+function setVoiceUi(isActive, status) {
+  voiceActive = isActive;
+  elements.voiceButton.textContent = isActive ? "停止录音" : "语音输入";
+  elements.voiceButton.classList.toggle("is-recording", isActive);
+  elements.voiceStatus.textContent = status;
+}
+
+function appendVoiceText(text) {
+  const normalized = text.trim();
+  if (!normalized) return;
+
+  const prefix = voiceBaseText.trim();
+  elements.answerText.value = prefix ? `${prefix}\n${normalized}` : normalized;
+}
+
+function startVoiceInput() {
+  if (elements.answerText.disabled) {
+    showToast("这题已经提交，不能继续修改回答", "error");
+    return;
+  }
+
+  voiceRecognition = getSpeechRecognition();
+  if (!voiceRecognition) {
+    setVoiceUi(false, "当前桌面环境不支持语音识别");
+    showToast("当前环境不支持应用内语音识别，可以先使用 macOS 听写或手动输入", "error");
+    return;
+  }
+
+  voiceBaseText = elements.answerText.value.trim();
+  voiceRecognition.lang = "zh-CN";
+  voiceRecognition.continuous = true;
+  voiceRecognition.interimResults = true;
+  voiceRecognition.maxAlternatives = 1;
+
+  voiceRecognition.addEventListener("result", (event) => {
+    let finalText = "";
+    let interimText = "";
+
+    for (let index = event.resultIndex; index < event.results.length; index += 1) {
+      const transcript = event.results[index][0]?.transcript || "";
+      if (event.results[index].isFinal) {
+        finalText += transcript;
+      } else {
+        interimText += transcript;
+      }
+    }
+
+    if (finalText) {
+      voiceBaseText = [voiceBaseText, finalText.trim()].filter(Boolean).join("\n");
+      elements.answerText.value = voiceBaseText;
+    }
+
+    if (interimText) {
+      appendVoiceText(interimText);
+      elements.voiceStatus.textContent = "正在识别中文...";
+    }
+  });
+
+  voiceRecognition.addEventListener("start", () => {
+    setVoiceUi(true, "正在听你说中文...");
+  });
+
+  voiceRecognition.addEventListener("end", () => {
+    setVoiceUi(false, "语音输入已停止");
+  });
+
+  voiceRecognition.addEventListener("error", (event) => {
+    setVoiceUi(false, "语音识别不可用");
+    showToast(`语音识别失败：${event.error || "请检查麦克风权限"}`, "error");
+  });
+
+  voiceRecognition.start();
+}
+
+function stopVoiceInput() {
+  if (voiceRecognition) {
+    voiceRecognition.stop();
+  }
+  setVoiceUi(false, "语音输入已停止");
+}
+
+function toggleVoiceInput() {
+  if (voiceActive) {
+    stopVoiceInput();
+    return;
+  }
+
+  startVoiceInput();
 }
 
 async function api(path, payload) {
@@ -169,6 +270,7 @@ function renderQuestion() {
   elements.intentText.textContent = question.intent;
   elements.answerText.value = answer?.candidateAnswer || "";
   elements.answerText.disabled = Boolean(answer);
+  elements.voiceButton.disabled = Boolean(answer);
   elements.submitAnswerButton.disabled = Boolean(answer);
   elements.submitAnswerButton.textContent = answer ? "已提交" : "提交回答";
   elements.prevButton.disabled = state.currentIndex === 0;
@@ -269,6 +371,7 @@ function goPrevious() {
 elements.resumeText.value = sampleResume();
 elements.resumeFile.addEventListener("change", handleResumeFile);
 elements.setupForm.addEventListener("submit", generateInterview);
+elements.voiceButton.addEventListener("click", toggleVoiceInput);
 elements.submitAnswerButton.addEventListener("click", submitAnswer);
 elements.nextButton.addEventListener("click", goNext);
 elements.prevButton.addEventListener("click", goPrevious);

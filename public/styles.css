@@ -113,6 +113,22 @@ h4 {
   font-weight: 700;
 }
 
+.desktop-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.desktop-toolbar span {
+  border: 1px solid #d5e2dc;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #f2faf6;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .setup-form {
   display: grid;
   gap: 10px;
@@ -122,6 +138,43 @@ label {
   color: var(--text);
   font-size: 14px;
   font-weight: 750;
+}
+
+.answer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.voice-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.voice-button {
+  min-height: 36px;
+  border: 1px solid #c9ddd5;
+  border-radius: 999px;
+  padding: 0 14px;
+  background: #eef8f0;
+  color: var(--green);
+  cursor: pointer;
+  font-weight: 850;
+}
+
+.voice-button.is-recording {
+  border-color: #f1b8b8;
+  background: #fff1f1;
+  color: var(--red);
+}
+
+#voiceStatus {
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
 }
 
 input,
@@ -367,6 +420,16 @@ li + li {
   }
 
   .actions button {
+    width: 100%;
+  }
+
+  .answer-toolbar,
+  .voice-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .voice-button {
     width: 100%;
   }
 

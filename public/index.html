@@ -17,6 +17,12 @@
           <span class="status-pill" id="modePill">模拟模式</span>
         </div>
 
+        <div class="desktop-toolbar">
+          <span>macOS 桌面优先</span>
+          <span>中文语音输入</span>
+          <span>即时反馈</span>
+        </div>
+
         <form id="setupForm" class="setup-form">
           <label for="targetRole">目标岗位</label>
           <input id="targetRole" name="targetRole" value="后端开发工程师" autocomplete="off" />
@@ -63,7 +69,13 @@
             <p id="intentText"></p>
           </div>
 
-          <label for="answerText">你的回答</label>
+          <div class="answer-toolbar">
+            <label for="answerText">你的回答</label>
+            <div class="voice-controls">
+              <button class="voice-button" id="voiceButton" type="button">语音输入</button>
+              <span id="voiceStatus">中文 zh-CN</span>
+            </div>
+          </div>
           <textarea id="answerText" spellcheck="false" placeholder="先按真实面试作答，提交后再看标准答案。"></textarea>
 
           <div class="actions">
